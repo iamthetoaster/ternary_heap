@@ -51,6 +51,15 @@ impl <T: Ord> TernaryHeap<T> {
         self.data.is_empty()
     }
 
+    pub fn into_sorted_vec(mut self) -> Vec<T> {
+        for i in (0..self.len()).rev() {
+            self.data.swap(0, i);
+            self.sink_until(0, i);
+        }
+        self.data
+    }
+
+    // Used to make values go up until their heap condition is met
     fn swim(&mut self, pos: usize) {
         let mut pos = pos;
         while pos > 0 {
@@ -63,6 +72,7 @@ impl <T: Ord> TernaryHeap<T> {
         }
     }
 
+    // Used to make values go down until their heap condition is met or they reach the bottom of the heap
     fn sink_until(&mut self, pos: usize, end: usize) {
         let mut pos = pos;
         while let Some(child) = self.best_child(pos, end) {
@@ -74,10 +84,12 @@ impl <T: Ord> TernaryHeap<T> {
         }
     }
 
+    // used to make values go down until their heap condition is met
     fn sink(&mut self, pos: usize) {
         self.sink_until(pos, self.data.len())
     }
 
+    // Used to determine if an index has children, and if so, which child index points to the largest child
     fn best_child(&self, parent: usize, end: usize) -> Option<usize> {
         match Self::children(parent, end) {
             Some(vec) => vec.into_iter().max_by_key(|i| &self.data[*i]),
@@ -85,6 +97,7 @@ impl <T: Ord> TernaryHeap<T> {
         }
     }
 
+    // Used to find the parent of a given node
     fn parent(child: usize) -> usize {
         if child == 0 {
             0
@@ -93,6 +106,7 @@ impl <T: Ord> TernaryHeap<T> {
         }
     }
 
+    // used to find all of the children of a given node
     fn children(parent: usize, end: usize) -> Option<Vec<usize>> {
         let first_child = parent * 3 + 1;
         if first_child >= end {
@@ -120,7 +134,6 @@ impl<T> From<TernaryHeap<T>> for Vec<T> {
         heap.data
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -199,6 +212,30 @@ mod tests {
         }
     }
 
+    #[test]
+    fn single_test_into_sorted_vec() {
+        specific_test_into_sorted_vec(10);
+    }
+
+    #[test]
+    #[ignore]
+    fn many_test_into_sorted_vec() {
+        for seed in 0..TEST_ITERATIONS {
+            specific_test_into_sorted_vec(seed);
+        }
+    }
+
+    fn specific_test_into_sorted_vec(seed: u64) {
+        let mut rand = SmallRng::seed_from_u64(seed);
+        let mut vec: Vec<_> = (0..TEST_SIZE).collect();
+        vec.shuffle(&mut rand);
+
+        let mut heap: TernaryHeap<_> = vec.into();
+        let vec = heap.into_sorted_vec();
+        for i in 0..vec.len() - 1 {
+            assert!(vec[i] <= vec[i + 1], "{:?}", vec);
+        }
+    }
 
     impl<T: Ord + std::fmt::Debug> TernaryHeap<T> {
         fn verify_heap(&self) {
