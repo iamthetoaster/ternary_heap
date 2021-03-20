@@ -60,8 +60,7 @@ impl <T: Ord> TernaryHeap<T> {
     }
 
     // Used to make values go up until their heap condition is met
-    fn swim(&mut self, pos: usize) {
-        let mut pos = pos;
+    fn swim(&mut self, mut pos: usize) {
         while pos > 0 {
             let parent = Self::parent(pos);
             if self.data[pos] <= self.data[parent] {
@@ -73,8 +72,7 @@ impl <T: Ord> TernaryHeap<T> {
     }
 
     // Used to make values go down until their heap condition is met or they reach the bottom of the heap
-    fn sink_until(&mut self, pos: usize, end: usize) {
-        let mut pos = pos;
+    fn sink_until(&mut self, mut pos: usize, end: usize) {
         while let Some(child) = self.best_child(pos, end) {
             if self.data[pos] >= self.data[child] {
                 return;
